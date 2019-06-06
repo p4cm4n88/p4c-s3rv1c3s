@@ -1,0 +1,57 @@
+debug = false
+
+logLevel = "ERROR"
+defaultEntryPoints = ["https","http"]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+  [entryPoints.api]
+  address = ":8089"
+
+[api]
+entryPoint = "api"
+dashboard = true
+
+
+[retry]
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "${DOMAINHOST}"
+watch = true
+exposedByDefault = false
+
+[acme]
+entryPoint = "https"
+storage = "/etc/traefik/acme/acme.json"
+caServer = "https://acme-v02.api.letsencrypt.org/directory"
+  [acme.dnsChallenge]
+  provider = "cloudflare"
+  delayBeforeCheck = 0
+  resolvers = ["1.1.1.1:53", "8.8.8.8:53"]
+  [[acme.domains]]
+  main = "*.${DOMAINHOST}"
+
+
+[file]
+watch = true
+
+[backends]
+  [backends.backend1]
+    [backends.backend1.servers]
+      [backends.backend1.servers.server0]
+      url = "http://${IP4}"
+      weight = 10
+
+[frontends]
+  [frontends.frontend1]
+  backend = "backend1"
+    [frontends.frontend1.routes]
+      [frontends.frontend1.routes.route0]
+      rule = "Host: ${DOMAINHOST}"
