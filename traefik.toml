@@ -23,7 +23,7 @@ dashboard = true
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"
-domain = "${DOMAINHOST}"
+domain = "p4ch0m3.host"
 watch = true
 exposedByDefault = false
 
@@ -36,7 +36,7 @@ caServer = "https://acme-v02.api.letsencrypt.org/directory"
   delayBeforeCheck = 0
   resolvers = ["1.1.1.1:53", "8.8.8.8:53"]
   [[acme.domains]]
-  main = "*.${DOMAINHOST}"
+  main = "*.p4ch0m3.host"
 
 
 [file]
@@ -46,7 +46,7 @@ watch = true
   [backends.backend1]
     [backends.backend1.servers]
       [backends.backend1.servers.server0]
-      url = "http://${IP4}"
+      url = "http://10.0.250.27"
       weight = 10
 
 [frontends]
@@ -54,4 +54,4 @@ watch = true
   backend = "backend1"
     [frontends.frontend1.routes]
       [frontends.frontend1.routes.route0]
-      rule = "Host: ${DOMAINHOST}"
+      rule = "Host: p4ch0m3.host"
