@@ -10,7 +10,8 @@ services:
       - TZ=${TZ}
     volumes:
       - ${DOCKER_VOL}/sonarr_volumes/config:/config
-      - ${MEDIASTORE}/Shows/:${MEDIASTORE}/Shows/
+      - ${MEDIASTORE}/Shows:/tv
+      - ${MEDIADL}:/downloads
     networks:
       - traefik
       - p4c
@@ -23,7 +24,6 @@ services:
       - "traefik.basic.port=8989"
       - "traefik.basic.protocol=http"
     restart: unless-stopped
-
    radarr:
     image: linuxserver/radarr
     container_name: radarr
@@ -33,7 +33,8 @@ services:
       - TZ=${TZ}
     volumes:
       - ${DOCKER_VOL}/radarr_volumes/config:/config
-      - ${MEDIASTORE}/Media:${MEDIASTORE}/Media
+      - ${MEDIASTORE}/Media:/movies
+      - ${MEDIADL}:/downloads
     networks:
       - traefik
       - p4c
@@ -83,7 +84,7 @@ services:
       - 8.8.4.4
     volumes:
       - ${DOCKER_VOL}/transmission_volumes/config:/config
-      - ${MEDIASTORE}:/downloads
+      - ${MEDIADL}:/downloads
       - /dummydir/watch:/watch
       - /etc/localtime:/etc/localtime:ro
     networks:
@@ -110,7 +111,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ${DOCKER_VOL}/jackett_volumes/config:/config
-      - ${MEDIASTORE}:/downloads
+      - ${MEDIADL}:/downloads
     networks:
       - traefik
       - p4c
@@ -263,7 +264,6 @@ services:
     volumes:
      - ${DOCKER_VOL}/varken_volumes/config:/config
     restart: unless-stopped
-
    whoami:
     image: emilevauge/whoami
     container_name: whoami
@@ -277,7 +277,6 @@ services:
       - "traefik.docker.network=traefik"
       - "traefik.basic.port=8080"
       - "traefik.basic.frontend.rule=Host::whoami.${DOMAINHOST}"
-    
    watchtower:
     container_name: watchtower
     restart: always
@@ -287,7 +286,27 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --schedule "0 0 4 * * *" --cleanup
-    
+   portainer:
+    container_name: portainer
+    image: portainer/portainer
+    command: -H unix:///var/run/docker.sock
+    environment:
+      - TZ=${TZ}
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ${DOCKER_VOL}/portainer_volumes/data:/data
+    expose:
+      - "9000"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:portainer.${DOMAINHOST}"
+      - "traefik.basic.port=9000"
+      - "traefik.basic.protocol=http"
+    restart: always
    traefik:
     image: traefik
     restart: always
@@ -297,7 +316,7 @@ services:
       - 8089:8080
     environment:
       - CF_API_EMAIL=liqhollywd@gmail.com
-      - CF_API_KEY=${CF_KEY}
+      - CF_API_KEY=197b49824f4693b02da6e42980673f77420c0
     networks:
       - traefik
     volumes:
