@@ -3,7 +3,9 @@ FROM jlesage/baseimage-gui:debian-9
 
 #Install Chrome
 RUN apt-get update && apt-get install -y wget &&  wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && apt-get install -y ./google-chrome-stable_current_amd64.deb
-
+RUN touch startapp.sh
+RUN echo "#!/bin/sh" >> startapp.sh
+RUN echo "exec /usr/bin/google-chrome --no-sandbox" >> startapp.sh
 #Copy start script
 COPY startapp.sh /startapp.sh
 
