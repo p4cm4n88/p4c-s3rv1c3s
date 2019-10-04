@@ -110,7 +110,7 @@ services:
     image: haugene/transmission-openvpn
     container_name: transmission
     env_file:
-      - transmission-env.env
+      - ${DOCKER_VOL}/transmission-env.env
     cap_add:
       - SYS_PTRACE
       - NET_ADMIN
@@ -543,4 +543,3 @@ networks:
 volumes:
    grafana_volumes:
     external: true
-
