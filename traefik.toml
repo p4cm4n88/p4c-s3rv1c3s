@@ -46,7 +46,7 @@ watch = true
   [backends.backend1]
     [backends.backend1.servers]
       [backends.backend1.servers.server0]
-      url = "http://10.0.250.27"
+      url = "http://10.0.255.252"
       weight = 10
 
 [frontends]
