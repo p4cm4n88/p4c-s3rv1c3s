@@ -1,0 +1,11 @@
+# Pull base image
+FROM jlesage/baseimage-gui:debian-9
+
+#Install Chrome
+RUN apt-get update && apt-get install -y wget &&  wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && apt-get install -y ./google-chrome-stable_current_amd64.deb
+
+#Copy start script
+COPY startapp.sh /startapp.sh
+
+#Set Name of Application
+ENV APP_NAME="Chrome"
