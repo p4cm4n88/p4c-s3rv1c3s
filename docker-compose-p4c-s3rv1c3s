@@ -1,0 +1,546 @@
+---
+version: "3"
+services:
+   plex:
+    container_name: plex
+    image: plexinc/pms-docker
+    restart: unless-stopped
+    ports:
+      - 32400:32400/tcp
+      - 3005:3005/tcp
+      - 8324:8324/tcp
+      - 32469:32469/tcp
+      - 1900:1900/udp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "32400"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:plex.${DOMAINHOST}"
+      - "traefik.basic.port=32400"
+      - "traefik.basic.protocol=http"
+    environment:
+      - TZ=${TZ}
+      - PLEX_CLAIM=claim-LoyQCQ_CzmXazNrBgxjF
+      - ADVERTISE_IP=http://${IP4}:32400/
+    hostname: p4c-pl3x
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    volumes:
+      - ${DOCKER_VOL}/plex_volumes/config:/config
+      - ${DOCKER_VOL}/plex_volumes/transcode:/transcode
+      - ${MEDIASTORE}/movies:/media/movies
+      - ${MEDIASTORE}/shows:/media/shows
+   sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/sonarr_volumes/config:/config
+      - ${MEDIADL}:/downloads
+      - ${MEDIASTORE}/Shows:/tv
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "8989"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:sonarr.${DOMAINHOST}"
+      - "traefik.basic.port=8989"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/radarr_volumes/config:/config
+      - ${MEDIADL}:/downloads
+      - ${MEDIASTORE}/Movies:/movies
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "7878"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:radarr.${DOMAINHOST}"
+      - "traefik.basic.port=7878"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   tautulli:
+    image: linuxserver/tautulli
+    container_name: tautulli
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/tautulli_volumes/config:/config
+      - ${DOCKER_VOL}/plex_volumes/config/Library/Application Support/Plex Media Server/Logs:/logs
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "8181"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:tautulli.${DOMAINHOST}"
+      - "traefik.basic.port=8181"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   transmission:
+    image: haugene/transmission-openvpn
+    container_name: transmission
+    env_file:
+      - transmission-env.env
+    cap_add:
+      - SYS_PTRACE
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - ${DOCKER_VOL}/transmission_volumes/config:/config
+      - ${MEDIASTORE}:/media
+      - ${MEDIADL}:/downloads
+      - ${DOCKER_VOL}/transmission_volumes/incomplete:/incomplete
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "9091"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:transmission.${DOMAINHOST}"
+      - "traefik.basic.port=9091"
+      - "traefik.basic.protocol=http"
+    ports:
+      - 51413:51413
+      - 51413:51413/udp
+      - 9091:9091
+    restart: unless-stopped
+   jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/jackett_volumes/config:/config
+      - ${MEDIASTORE}:/downloads
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "9117"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:jackett.${DOMAINHOST}"
+      - "traefik.basic.port=9117"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/bazarr_volumes/config:/config
+      - ${MEDIASTORE}/Movies:/movies
+      - ${MEDIASTORE}/Shows:/tv
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "6767"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:bazarr.${DOMAINHOST}"
+      - "traefik.basic.port=6767"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   ombi:
+    image: linuxserver/ombi
+    container_name: ombi
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/ombi_volumes/config:/config
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "3579"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:ombi.${DOMAINHOST}"
+      - "traefik.basic.port=3579"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   organizr:
+    image: organizrtools/organizr-v2
+    container_name: organizr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/organizr_volumes/config:/config
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "80"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:organizr.${DOMAINHOST}"
+      - "traefik.basic.port=80"
+      - "traefik.basic.protocol=http"
+    restart: always
+   netdata:
+    image: netdata/netdata
+    hostname: https://netdata.${DOMAINHOST}
+    container_name: netdata
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "19999"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:netdata.${DOMAINHOST}"
+      - "traefik.basic.port=19999"
+      - "traefik.basic.protocol=http"
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+   jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    environment:
+     - PUID=${PUID}
+     - PGID=${PGID}
+    volumes:
+      - ${DOCKER_VOL}/jellyfin_volumes/config:/config
+      - ${DOCKER_VOL}/jellyfin_volumes/cache:/cache
+      - ${MEDIASTORE}/movies:/media/movies
+      - ${MEDIASTORE}/shows:/media/shows
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "8096"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:jellyfin.${DOMAINHOST}"
+      - "traefik.basic.port=8096"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   guac:
+    image: oznu/guacamole
+    container_name: guac
+    volumes:
+     - ${DOCKER_VOL}/guac_volumes/config:/config
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "8080"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:g4ac.${DOMAINHOST}"
+      - "traefik.basic.port=8080"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
+   varken:
+    image: boerderij/varken
+    container_name: varken
+    environment:
+     - PUID=${PUID}
+     - PGID=${PGID}
+     - TZ=${TZ}
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - ${DOCKER_VOL}/varken_volumes/config:/config
+    restart: unless-stopped
+   whoami:
+    image: emilevauge/whoami
+    container_name: whoami
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "80"
+    labels:
+      - traefik.enable=true
+      - "traefik.docker.network=traefik"
+      - "traefik.basic.port=80"
+      - "traefik.basic.frontend.rule=Host:whoami.${DOMAINHOST}"
+   watchtower:
+    container_name: watchtower
+    restart: always
+    image: v2tec/watchtower
+    networks:
+      - p4c
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *" --cleanup
+   heimdall:
+    container_name: heimdall
+    image: linuxserver/heimdall
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - ${DOCKER_VOL}/heimdall_volumes/config:/config
+    expose:
+      - "80"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:h.${DOMAINHOST}"
+      - "traefik.basic.port=80"
+      - "traefik.basic.protocol=http"
+    restart: always
+   flextv:
+    container_name: flextv
+    image: digitalhigh/flextv
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - ${DOCKER_VOL}/flextv_volumes/config:/config
+    expose:
+      - "80"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:flextv.${DOMAINHOST}"
+      - "traefik.basic.port=80"
+      - "traefik.basic.protocol=http"
+    restart: always
+   portainer:
+    container_name: portainer
+    image: portainer/portainer
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - 9000:9000
+    environment:
+      - TZ=${TZ}
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ${DOCKER_VOL}/portainer_volumes/data:/data
+    expose:
+      - "9000"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:portainer.${DOMAINHOST}"
+      - "traefik.basic.port=9000"
+      - "traefik.basic.protocol=http"
+    restart: always
+   firefox:
+    container_name: firefox
+    image: jlesage/firefox
+    ports:
+      - 5800:5800
+      - 5900:5900
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - KEEP_APP_RUNNING=1
+      - CLEAN_TMP_DIR=1
+      - SECURE_CONNECTION=0
+      - VNC_PASSWORD=${PW}
+    shm_size: 2G
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - ${DOCKER_VOL}/firefox_volumes/config:/config
+    expose:
+      - "5800"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:firefox.${DOMAINHOST}"
+      - "traefik.basic.port=5800"
+      - "traefik.basic.protocol=http"
+    restart: always
+   putty:
+    container_name: putty
+    image: jlesage/putty
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - KEEP_APP_RUNNING=1
+      - CLEAN_TMP_DIR=1
+      - SECURE_CONNECTION=0
+      - VNC_PASSWORD=${PW}
+    shm_size: 2G
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - ${DOCKER_VOL}/putty_volumes/config:/config
+    expose:
+      - "5800"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:putty.${DOMAINHOST}"
+      - "traefik.basic.port=5800"
+      - "traefik.basic.protocol=http"
+    restart: always
+   chrome:
+    container_name: chrome
+    image: mychrome
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - KEEP_APP_RUNNING=1
+      - CLEAN_TMP_DIR=1
+      - SECURE_CONNECTION=0
+      - VNC_PASSWORD=${PW}
+    shm_size: 2G
+    networks:
+      - traefik
+      - p4c
+    volumes:
+     - ${DOCKER_VOL}/chrome_volumes/config:/config
+    expose:
+      - "5800"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:chrome.${DOMAINHOST}"
+      - "traefik.basic.port=5800"
+      - "traefik.basic.protocol=http"
+    restart: always
+   influxdb:
+    container_name: influxdb
+    image: influxdb
+    networks:
+      - p4c
+      - traefik
+    volumes:
+      - ${DOCKER_VOL}/influxdb_volumes/database:/var/lib/influxdb
+    ports:
+      - 8086:8086
+    environment:
+      - TZ=${TZ}
+      - INFLUXDB_HOSTNAME=influxdb
+    restart: always
+   grafana:
+    container_name: grafana
+    ports:
+      - 3000:3000
+    networks:
+      - p4c
+      - traefik
+    expose:
+      - "3000"
+    restart: unless-stopped
+    volumes:
+      - grafana_volumes:/var/lib/grafana
+    environment:
+      - GF_SERVER_ROOT_URL=https://grafana.${DOMAINHOST}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_PW}
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_SERVER_DOMAIN=${DOMAINHOST}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:grafana.${DOMAINHOST}"
+      - "traefik.basic.port=3000"
+      - "traefik.basic.protocol=http"
+    image: grafana/grafana
+   traefik:
+    image: traefik:v1.7.16
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+      - 8089:8089
+    environment:
+      - CF_API_EMAIL=${CF_EMAIL}
+      - CF_API_KEY=${CF_KEY}
+    networks:
+      - p4c
+      - traefik
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:traefik.${DOMAINHOST}"
+      - "traefik.basic.port=8089"
+      - "traefik.basic.protocol=http"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_VOL}/traefik_volumes/config/:/etc/traefik/
+    container_name: traefik
+networks:
+   traefik:
+    external: true
+   p4c:
+    external: true
+volumes:
+   grafana_volumes:
+    external: true
+
