@@ -1,6 +1,4 @@
----
-version: "3"
-services:
+--- version: "3" services:
    plex:
     container_name: plex
     image: plexinc/pms-docker
@@ -534,12 +532,19 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${DOCKER_VOL}/traefik_volumes/config/:/etc/traefik/
-    container_name: traefik
-networks:
+    container_name: traefik networks:
    traefik:
     external: true
    p4c:
-    external: true
-volumes:
+    external: true volumes:
    grafana_volumes:
     external: true
+
+
+
+
+
+
+
+
+123
