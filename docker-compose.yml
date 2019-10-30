@@ -36,8 +36,8 @@ services:
     volumes:
       - ${DOCKER_VOL}/plex_volumes/config:/config
       - ${DOCKER_VOL}/plex_volumes/transcode:/transcode
-      - ${MEDIASTORE}/movies:/media/movies
-      - ${MEDIASTORE}/shows:/media/shows
+      - ${MEDIASTORE}/Movies:/media/movies
+      - ${MEDIASTORE}/Shows:/media/shows
    sonarr:
     image: linuxserver/sonarr
     container_name: sonarr
