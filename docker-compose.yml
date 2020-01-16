@@ -84,6 +84,33 @@ services:
       - "traefik.basic.port=7878"
       - "traefik.basic.protocol=http"
     restart: unless-stopped
+   tdarr_aio:
+    image: haveagitgat/tdarr_aio
+    container_name: tdarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_VOL}/tdarr_volumes/db:/var/lib/mongodb
+      - ${MEDIASTORE}/Shows:/tv
+      - ${MEDIADL}/cache:/home/Tdarr/cache
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKER_VOL}/tdarr_volumes/docs:/home/Tdarr/Documents/Tdarr
+      - ${MEDIADL}:/downloads
+      - ${MEDIASTORE}/Movies:/movies
+    networks:
+      - traefik
+      - p4c
+    expose:
+      - "8265"
+    labels:
+      - "traefik.docker.network=traefik"
+      - "traefik.enable=true"
+      - "traefik.basic.frontend.rule=Host:tdarr.${DOMAINHOST}"
+      - "traefik.basic.port=8265"
+      - "traefik.basic.protocol=http"
+    restart: unless-stopped
    tautulli:
     image: linuxserver/tautulli
     container_name: tautulli
