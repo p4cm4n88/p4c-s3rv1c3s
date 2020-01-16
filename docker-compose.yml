@@ -261,8 +261,9 @@ services:
     volumes:
       - ${DOCKER_VOL}/jellyfin_volumes/config:/config
       - ${DOCKER_VOL}/jellyfin_volumes/cache:/cache
-      - ${MEDIASTORE}/movies:/media/movies
-      - ${MEDIASTORE}/shows:/media/shows
+      - ${MEDIASTORE}/Movies:/media/movies
+      - ${MEDIASTORE}/Shows:/media/shows
+      - /netstorage:/netstorage
     networks:
       - traefik
       - p4c
@@ -345,27 +346,6 @@ services:
       - "traefik.docker.network=traefik"
       - "traefik.enable=true"
       - "traefik.basic.frontend.rule=Host:h.${DOMAINHOST}"
-      - "traefik.basic.port=80"
-      - "traefik.basic.protocol=http"
-    restart: always
-   flextv:
-    container_name: flextv
-    image: digitalhigh/flextv
-    environment:
-      - TZ=${TZ}
-      - PUID=${PUID}
-      - PGID=${PGID}
-    networks:
-      - traefik
-      - p4c
-    volumes:
-     - ${DOCKER_VOL}/flextv_volumes/config:/config
-    expose:
-      - "80"
-    labels:
-      - "traefik.docker.network=traefik"
-      - "traefik.enable=true"
-      - "traefik.basic.frontend.rule=Host:flextv.${DOMAINHOST}"
       - "traefik.basic.port=80"
       - "traefik.basic.protocol=http"
     restart: always
