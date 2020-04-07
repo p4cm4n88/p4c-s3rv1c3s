@@ -28,7 +28,7 @@ services:
       - "traefik.basic.protocol=http"
     environment:
       - TZ=${TZ}
-      - PLEX_CLAIM=claim-LoyQCQ_CzmXazNrBgxjF
+      - PLEX_CLAIM=${CLAIM_TOKEN}
       - ADVERTISE_IP=http://${IP4}:32400/
     hostname: p4c-pl3x
     devices:
